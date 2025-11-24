@@ -68,6 +68,9 @@ RUN python3 use_existing_torch.py && \
 # Changed -e (editable) to . (standard install) for better Docker portability
 RUN pip install --no-build-isolation . -v
 
+# Set the final workdir
 WORKDIR $VLLM_BASE_DIR
-# Default entrypoint (Optional: starts the server)
-CMD ["/bin/bash"]
+
+# Copy clustering script
+COPY run-cluster-node.sh $VLLM_BASE_DIR/
+
