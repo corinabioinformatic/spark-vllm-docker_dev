@@ -13,6 +13,7 @@ ENV VLLM_BASE_DIR=/workspace/vllm
 # Added 'git', 'wget', and 'python3-pip' as they are required for the script steps
 RUN apt-get update && apt-get install -y \
     curl \
+    vim \
     cmake \
     build-essential \
     ninja-build \
@@ -20,6 +21,7 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     git \
     wget \
+    gnuplot \
     && rm -rf /var/lib/apt/lists/*
 
 # Setup Workspace
@@ -47,7 +49,7 @@ ARG CACHEBUST_DEPS=1
 RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu130
 
 # Install Helper libraries
-RUN pip install xgrammar triton
+RUN pip install xgrammar triton termplotlib
 
 # Install FlashInfer
 # Note: Using the same index URLs as provided in your script
