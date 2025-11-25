@@ -68,9 +68,9 @@ docker run --privileged --gpus all -it --rm \
   --name vllm_node \ 
   -v ~/.cache/huggingface:/root/.cache/huggingface \
   vllm-node ./run-cluster-node.sh \
-    --role head 
-    --host-ip 192.168.177.11 
-    --eth-if enp1s0f1np1 
+    --role head \
+    --host-ip 192.168.177.11 \
+    --eth-if enp1s0f1np1 \
     --ib-if rocep1s0f1 
 ```
 
@@ -83,10 +83,10 @@ docker run --privileged --gpus all -it --rm \
   --name vllm_node \
   -v ~/.cache/huggingface:/root/.cache/huggingface \
   vllm-node ./run-cluster-node.sh \
-    --role node
-    --host-ip 192.168.177.12
-    --eth-if enp1s0f1np1
-    --ib-if rocep1s0f1
+    --role node \
+    --host-ip 192.168.177.12 \
+    --eth-if enp1s0f1np1 \
+    --ib-if rocep1s0f1 \
     --head-ip 192.168.177.11
 ```
 
