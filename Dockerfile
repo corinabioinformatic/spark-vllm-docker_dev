@@ -75,8 +75,8 @@ RUN python3 use_existing_torch.py && \
     sed -i "/flashinfer/d" requirements/cuda.txt && \
     pip install -r requirements/build.txt
 
-# TEMPORARY - apply NVFP4 patch
-RUN curl -L https://patch-diff.githubusercontent.com/raw/vllm-project/vllm/pull/29242.diff | git apply
+# TEMPORARY - apply NVFP4 patch - MERGED ON 11/25/2025 - TODO: test and remove from Dockerfile
+# RUN curl -L https://patch-diff.githubusercontent.com/raw/vllm-project/vllm/pull/29242.diff | git apply
 
 # Final Build
 # Uses --no-build-isolation to respect the pre-installed Torch/FlashInfer
