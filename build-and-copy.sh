@@ -18,6 +18,7 @@ PARALLEL_COPY=false
 
 cleanup() {
     if [ -n "$TMP_IMAGE" ] && [ -f "$TMP_IMAGE" ]; then
+        echo "Cleaning up temporary image $TMP_IMAGE"
         rm -f "$TMP_IMAGE"
     fi
 }
@@ -51,6 +52,7 @@ copy_to_host() {
         return 1
     fi
 }
+BUILD_JOBS="16"
 
 # Help function
 usage() {
@@ -63,6 +65,7 @@ usage() {
     echo "  -c, --copy-to <hosts>     : Host(s) to copy the image to. Accepts comma or space-delimited lists after the flag."
     echo "      --copy-to-host        : Alias for --copy-to (backwards compatibility)."
     echo "      --copy-parallel       : Copy to all hosts in parallel instead of serially."
+    echo "  -j, --build-jobs <jobs>   : Number of concurrent build jobs (default: \${BUILD_JOBS})"
     echo "  -u, --user <user>         : Username for ssh command (default: \$USER)"
     echo "  --no-build                : Skip building, only copy image (requires --copy-to)"
     echo "  -h, --help                : Show this help message"
@@ -94,6 +97,7 @@ while [[ "$#" -gt 0 ]]; do
             fi
             continue
             ;;
+        -j|--build-jobs) BUILD_JOBS="$2"; shift ;;
         -u|--user) SSH_USER="$2"; shift ;;
         --copy-parallel) PARALLEL_COPY=true ;;
         --no-build) NO_BUILD=true ;;
@@ -130,6 +134,9 @@ if [ "$NO_BUILD" = false ]; then
 
     # Add VLLM_REF to build arguments
     CMD+=("--build-arg" "VLLM_REF=$VLLM_REF")
+
+    # Add BUILD_JOBS to build arguments
+    CMD+=("--build-arg" "BUILD_JOBS=$BUILD_JOBS")
 
     # Add build context
     CMD+=(".")
