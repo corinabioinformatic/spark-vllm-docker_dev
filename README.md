@@ -8,6 +8,7 @@ While it was primarily developed to support multi-node inference, it works just 
 ## Table of Contents
 
 - [DISCLAIMER](#disclaimer)
+- [QUICK START](#quick-start)
 - [CHANGELOG](#changelog)
 - [1. Building the Docker Image](#1-building-the-docker-image)
 - [2. Launching the Cluster (Recommended)](#2-launching-the-cluster-recommended)
@@ -23,6 +24,73 @@ While it was primarily developed to support multi-node inference, it works just 
 This repository is not affiliated with NVIDIA or their subsidiaries. This is a community effort aimed to help DGX Spark users to set up and run the most recent versions of vLLM on Spark cluster or single nodes. 
 
 The Dockerfile builds from the main branch of VLLM, so depending on when you run the build process, it may not be in fully functioning state. You can target a specific vLLM release by setting `--vllm-ref` parameter or use `--use-wheels release` to install pre-built release wheels.
+
+## QUICK START
+
+### Build
+
+Check out locally. If using DGX Spark cluster, do it on the head node.
+
+```bash
+git clone https://github.com/eugr/spark-vllm-docker.git
+cd spark-vllm-docker
+```
+
+Build the container.
+
+**If you have only one DGX Spark:**
+
+```bash
+./build-and-copy.sh --use-wheels
+```
+
+**On DGX Spark cluster:**
+
+Make sure you connect your Sparks together and enable passwordless SSH as described in NVidia's [Connect Two Sparks Playbook](https://build.nvidia.com/spark/connect-two-sparks/stacked-sparks). 
+
+Then run the following command that will build and distribute image across the cluster.
+
+```bash
+./build-and-copy.sh --use-wheels -c
+```
+
+### Run
+
+**On a single node**:
+
+```bash
+ docker run \
+  --privileged \
+  --gpus all \
+  -it --rm \
+  --network host --ipc=host \
+  -v  ~/.cache/huggingface:/root/.cache/huggingface \
+  vllm-node \
+  bash -c -i "vllm serve \
+  QuantTrio/Qwen3-VL-30B-A3B-Instruct-AWQ \
+  --port 8000 --host 0.0.0.0 \
+  --gpu-memory-utilization 0.7 \
+  --load-format fastsafetensors"
+```
+
+**On a cluster**
+
+```bash
+./launch-cluster.sh exec vllm serve \
+  QuantTrio/MiniMax-M2-AWQ \
+  --port 8000 --host 0.0.0.0 \
+  --gpu-memory-utilization 0.7 \
+  -tp 2 \
+  --distributed-executor-backend ray \
+  --max-model-len 128000 \
+  --load-format fastsafetensors \
+  --enable-auto-tool-choice --tool-call-parser minimax_m2 \
+  --reasoning-parser minimax_m2_append_think
+```
+
+This will run the model on all available cluster nodes.
+
+**NOTE:** do not use `--load-format fastsafetensors` if you are loading models that would take >0.8 of available RAM (without KV cache) as it may result in out of memory situation.
 
 ## CHANGELOG
 
