@@ -24,6 +24,13 @@ The Dockerfile builds from the main branch of VLLM, so depending on when you run
 
 ## CHANGELOG
 
+### 2025-12-20
+
+- Added `--use-wheels [mode]` flag to `build-and-copy.sh`.
+  - Allows building the container using pre-built vLLM wheels instead of compiling from source.
+  - The resulting Docker container size is reduced considerably (14GB vs 24GB)
+  - `mode` is optional and defaults to `nightly`.
+  - Supported modes: `nightly` (release wheels are broken with CUDA 13 currently).
 ### 2025-12-19
 
 Updated `build-and-copy.sh` to support copying to multiple hosts (thanks @ericlewis for the contribution).
@@ -179,6 +186,7 @@ Using a different username:
 | `--rebuild-vllm` | Force rebuild vLLM source only (sets CACHEBUST_VLLM) |
 | `--triton-ref <ref>` | Triton commit SHA, branch or tag (default: 'v3.5.1') |
 | `--vllm-ref <ref>` | vLLM commit SHA, branch or tag (default: 'main') |
+| `--use-wheels [mode]` | Use pre-built vLLM wheels. Mode: `nightly` (default) or `release`. |
 | `-c, --copy-to <host[,host...] or host host...>` | Host(s) to copy the image to after building (space- or comma-separated list after the flag). |
 | `--copy-to-host` | Alias for `--copy-to` (backwards compatibility). |
 | `--copy-parallel` | Copy to all specified hosts concurrently. |

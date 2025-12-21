@@ -15,6 +15,7 @@ TRITON_REF="v3.5.1"
 VLLM_REF="main"
 TMP_IMAGE=""
 PARALLEL_COPY=false
+USE_WHEELS_MODE=""
 
 cleanup() {
     if [ -n "$TMP_IMAGE" ] && [ -f "$TMP_IMAGE" ]; then
@@ -67,6 +68,7 @@ usage() {
     echo "      --copy-parallel       : Copy to all hosts in parallel instead of serially."
     echo "  -j, --build-jobs <jobs>   : Number of concurrent build jobs (default: \${BUILD_JOBS})"
     echo "  -u, --user <user>         : Username for ssh command (default: \$USER)"
+    echo "  --use-wheels [mode]       : Use prebuilt vLLM wheels. Mode can be 'nightly' (default) or 'release'."
     echo "  --no-build                : Skip building, only copy image (requires --copy-to)"
     echo "  -h, --help                : Show this help message"
     exit 1
@@ -115,6 +117,18 @@ while [[ "$#" -gt 0 ]]; do
         -j|--build-jobs) BUILD_JOBS="$2"; shift ;;
         -u|--user) SSH_USER="$2"; shift ;;
         --copy-parallel) PARALLEL_COPY=true ;;
+        --use-wheels)
+            if [[ "$2" != -* && -n "$2" ]]; then
+                if [[ "$2" != "nightly" && "$2" != "release" ]]; then
+                    echo "Error: --use-wheels argument must be 'nightly' or 'release'."
+                    exit 1
+                fi
+                USE_WHEELS_MODE="$2"
+                shift
+            else
+                USE_WHEELS_MODE="nightly"
+            fi
+            ;;
         --no-build) NO_BUILD=true ;;
         -h|--help) usage ;;
         *) echo "Unknown parameter passed: $1"; usage ;;
@@ -133,6 +147,20 @@ BUILD_TIME=0
 if [ "$NO_BUILD" = false ]; then
     # Construct build command
     CMD=("docker" "build" "-t" "$IMAGE_TAG")
+
+    if [ -n "$USE_WHEELS_MODE" ]; then
+        echo "Using pre-built vLLM wheels (mode: $USE_WHEELS_MODE)"
+        CMD+=("-f" "Dockerfile.wheels")
+        if [ "$USE_WHEELS_MODE" = "release" ]; then
+             echo "Release wheels are currently broken with CUDA 13, use nightly instead."
+             exit 1
+             CMD+=("--build-arg" "VLLM_WHEELS_URL=https://wheels.vllm.ai/cu130")
+        else
+             CMD+=("--build-arg" "VLLM_WHEELS_URL=https://wheels.vllm.ai/nightly/cu130")
+        fi
+    else
+        echo "Building vLLM from source"
+    fi
 
     if [ "$REBUILD_DEPS" = true ]; then
         echo "Setting CACHEBUST_DEPS..."
